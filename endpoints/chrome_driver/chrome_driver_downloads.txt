@@ -1,0 +1,9 @@
+Questa cartella non serve piu' per il funzionamento normale: driver e browser li
+scarica da se' Selenium alla prima ricerca.
+
+Serve solo come deposito manuale in casi particolari, ad esempio senza accesso
+agli endpoint di Google: in quel caso indicare il file in CHROMEDRIVER_PATH
+dentro il .env, altrimenti viene ignorato.
+
+Download dei chromedriver:
+https://googlechromelabs.github.io/chrome-for-testing/
