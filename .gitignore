@@ -1,0 +1,47 @@
+# Credenziali locali
+.env
+
+# File generati dall'app
+exports/*.xlsx
+data_file/data.json
+cookies.json
+debug.log
+*.log
+.gps-update-state.json
+.gps-update-state.tmp
+
+# Output di build dell'updater
+updater/build/
+updater/dist/
+updater/*.spec.bak
+
+# ChromeDriver (binari, zip, cartelle estratte; si aggiornano da soli)
+endpoints/chrome_driver/*
+!endpoints/chrome_driver/.gitkeep
+!endpoints/chrome_driver/chrome_driver_downloads.txt
+**/chromedriver.exe
+**/_chromedriver.exe
+**/*chromedriver*.exe
+**/*chromedriver*.zip
+**/*chromedriver*.bak
+**/chromedriver-win64/
+**/LICENSE.chromedriver
+
+# Python
+env/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# SVN leftover
+.svn/
+
+# OS / editor
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/

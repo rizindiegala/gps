@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>🤖 {{ app_name }} - Versione {{ app_version }}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+		<link rel="stylesheet"  type="text/css" href="{{url_for('static', filename='reset.css')}}">
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet"  type="text/css" href="{{url_for('static', filename='style.css')}}">
+		<link rel="stylesheet"  type="text/css" href="{{url_for('static', filename='style_responsive.css')}}">
+		<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<section class="main-container">
+			<h1 class="title-font">🤖 {{ app_name }} - Versione {{ app_version }}</h1>
+			<div class="main-container-inner relative">
+				<div class="abs-cover display-none">
+					<div class="abs-cover-text">
+						<i class="fa fa-spinner fa-spin" aria-hidden="true"></i>Loading currency ratings...
+					</div>
+				</div>
+				<div class="main-container-inner-padding">
+					{% block content %}{% endblock %}
+				</div>
+			</div>
+			<footer>
+				Indiegala Srl ©2023
+			</footer>
+		</section>
+	</body>
+</html>

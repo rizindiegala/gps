@@ -1,0 +1,73 @@
+# Creare una app Flask (Mac)
+
+1. Crea una cartella e dagli il nome flask
+
+2. Posiziona la cartella che hai appena creato dove meglio credi. Questa è la cartella che conterrà l'app Flask.
+
+3. Apri il terminale e raggiungi la cartella che hai appena creato. 
+
+Ti ricordo che per navigare tra le cartelle del tuo mac puoi utilizzare i comandi:
+ - ls -> restituisce la lista dei file e cartelle presenti nella tua posizione
+ - cd nome_cartella -> ti sposti all'interno della cartella 
+ - cd .. -> esci dalla cartella in cui sei
+Supponiamo di aver creato una cartella flask_app sul desktop, tramite terminale dovrò raggiungere la posizione /Desktop/flask_app
+
+4. Una volta raggiunta la posizione all'interno della cartella appena creata digita il comando:
+
+python3 -m venv env ↵
+
+Questo comando serve a creare un VIRTUAL ENVIRONMENT cioè una installazione python totalmente indipendente dal resto del computer. Tutti moduli installati qui dentro saranno validi ed eseguiti solo all'interno di questo ambiente.
+Eseguito questo comando vedrai che verrà creata una nuova cartella "env" con all'interno tutti i file necessari per eseguire correttamente Python. 
+	 
+5. Attiva il VIRTUAL ENVIRONMENT digitando il comando:
+
+source env/bin/activate ↵
+Noterai che il VIRTUAL ENVIRONMENT è attivato perchè comparirà nel terminale la dicitura (env) nella riga successiva.
+
+Per disattivare il VIRTUAL ENVIRONMENT (al termine del lavoro) digitare:
+
+deactivate ↵
+	 
+6. Installa via pip3 le librerie necessarie, digita:
+
+pip3 install requests ↵
+e una volta completata l'installazione di requests:
+pip3 install flask ↵
+
+7. Crea all'interno della cartella flask_app (IMPORTANTE: non all'interno di env!) il file app.py. A questo punto dovresti avere la seguente struttura di file e cartelle:
+
+DIR flask_app
+ DIR env
+ FILE app.py
+		 
+8. Apri il file app.py con un editor (SublimeText o VS Code o quello che preferite) e copia all'interno il seguente codice:
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+	return '<h1>Hello world!</h1>'
+	
+9. Digita il comando seguente:
+
+export FLASK_DEBUG=development ↵
+
+In questo modo il web server Flask partirà in modalità debug, ciò vuol dire che non sarà necessario fermare e far ripartire il server ad ogni modifica che farai sul codice.
+
+10. Digita il comando seguente per avviare il web server:
+
+flask run ↵
+
+Vedrai tra le altre una scritta del genere: 
+* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+
+L'indirizzo http://127.0.0.1:5000/ è l'url raggiungibile da browser su cui è attivo il web server con l'app Flask che hai appena creato.
+
+Per verificare il funzionamento del web server, apri il browser e nel campo di inserimento url digita l'indirizzo del server http://127.0.0.1:5000/. Se è stato tutto configurato in maniera corretta vedrai la scritta 'Hello world!' corrispondente alla stringa che viene restituita dalla funzione index() nel file app.py
+
+	
+
+	 
+

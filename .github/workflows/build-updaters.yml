@@ -1,0 +1,94 @@
+name: Build updater
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "updater/**"
+      - "tests/test_updater.py"
+      - ".github/workflows/build-updaters.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+            artifact: gps-updater-windows
+          - name: macOS Apple Silicon
+            os: macos-14
+            artifact: gps-updater-macos-arm64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test updater
+        run: python -m unittest discover -s tests -v
+
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pyinstaller
+
+      - name: Build updater
+        working-directory: updater
+        run: pyinstaller --noconfirm --clean updater.spec
+
+      - name: Verify Windows executable
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '& "updater/dist/Aggiorna-GPS-Windows.exe" --version'
+
+      - name: Package macOS application
+        if: runner.os == 'macOS'
+        run: |
+          updater/dist/Aggiorna\ GPS.app/Contents/MacOS/Aggiorna\ GPS --version
+          ditto -c -k --sequesterRsrc --keepParent \
+            "updater/dist/Aggiorna GPS.app" \
+            "updater/dist/Aggiorna-GPS-macOS-Apple-Silicon.zip"
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: ${{ matrix.artifact }}
+          path: updater/dist/Aggiorna-GPS-Windows.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'macOS'
+        with:
+          name: ${{ matrix.artifact }}
+          path: updater/dist/Aggiorna-GPS-macOS-Apple-Silicon.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Publish updater binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: updater-v${{ github.run_number }}
+        run: |
+          gh release create "$TAG" release/* \
+            --repo "${{ github.repository }}" \
+            --title "GPS Updater $TAG" \
+            --notes "Updater a doppio clic per Windows x64 e macOS Apple Silicon. Gli eseguibili non sono firmati: seguire AGGIORNAMENTO.md per il primo avvio." \
+            --latest

@@ -1,0 +1,39 @@
+# Come creare un app con Flask (win)
+
+1. Creare la cartella in cui andremo a mettere la nostra app Flask
+2. Aprire una shell e raggiungere la cartella che abbiamo appena creato
+3. Digitare il comando:  
+	python3 -m venv env ↵
+4. Digitare il comando:
+	env\Scripts\activate.bat ↵
+	su os source env/bin/activate ↵
+5. Digitare il comando:
+	pip3 install flask ↵
+6. All'interno della cartella dell'app creiamo il file app.py
+7. Aprite il file con SublimeText e inserite il seguente codice:
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+	return '<h1>Hello world!</h1>'
+	
+8. Nella shell digitiamo i comandi:
+
+set FLASK_ENV=development ↵
+su os export FLASK_ENV=development ↵
+flask run ↵
+
+9. Nella risposta che verrà stampata dopo aver dato il comando precedente cercate quella simile a questa:
+
+* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+
+L'indirizzo http://127.0.0.1:5000/ è l'url raggiungibile da browser su cui è attivo il web server con l'app Flask che abbiamo appena creato.
+
+10. Per verificare il funzionamento del web server, aprire il browser e nel campo di inserimento url digitate l'indirizzo del server http://127.0.0.1:5000/. Se è stato tutto configurato in maniera corretta vedrete la scritta 'Hello world' corrispondente alla stringa che viene restituita dalla funzione index() nel file app.py
+
+## Versione Mac
+https://www.youtube.com/watch?v=zRwy8gtgJ1A
+

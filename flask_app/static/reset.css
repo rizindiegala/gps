@@ -1,0 +1,9 @@
+/* Reset */
+html, body { height: 100% }
+h1, h2, h3, h4, h5, h6 { padding: 0; margin: 0; font-weight: normal; }
+body, p, figure, input, label { padding: 0; margin: 0; }
+a, a:hover { color: #333; text-decoration: none; }
+:focus { outline: none; border: none }
+ul, ul li { margin: 0; padding: 0; list-style-type: none; }
+hr { padding: 0; margin: 0; height: 0; line-height: 0; font-size: 0; border: none; border-bottom: 1px solid; }
+button:focus { outline: none; }

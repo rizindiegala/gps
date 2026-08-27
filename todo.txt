@@ -1,0 +1,3 @@
+- sku_id impilati
+- country code
+- esportazione xls in un solo sheet con titolo e sku id

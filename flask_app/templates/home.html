@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block content %}
+<form action="/" method="get">
+	<div class="page-table">
+		<div class="flex page-table-row page-table-row-margin-bottom">
+			<div class="page-table-col">
+				<div class="page-table-col-inner">
+					<p class="intro-text">Inserisci gli sku id separati da a capo (uno per riga); scegli la valuta output (usd, eur o gbp) e clicca su Cerca.</p>
+				</div>
+			</div>
+		</div>
+		<div class="flex page-table-row">
+			<div class="page-table-col page-table-col-sku-id">
+				<div class="page-table-col-inner">
+					<div class="page-table-col-label">Sku id</div>
+					<textarea id="input-sku-id" class="page-table-col-textarea monospace-font"></textarea>
+				</div>
+			</div>
+			<div class="page-table-col">
+				<div class="page-table-col-inner">
+					<div class="page-table-col-label">Valuta output</div>
+					<input id="input-currency" class="page-table-col-input monospace-font" type="text" value="usd">
+					<a id="submit-btn" class="ottieni-dati" href="#" onclick="ottieniDatiGenba(this, event)">Cerca</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<section class="results-data display-none">
+	<h2 class="results-data-title"><strong></strong> Risultati <em>( <span></span> secondi )</em></h2>
+	<h4 class="results-data-export display-none">
+		<a href="#" onclick="exportResults(this, event)">Esporta tutto</a>
+		<div class="clear"></div>
+	</h4>
+	<ul class="results-product-list">
+	</ul>
+</section>
+<script>
+	const OUTPUT_CURRENCIES = ['USD', 'EUR', 'GBP'];
+
+	var requestTimeInterval,
+		outputCurrency = 'USD',
+		responseObj = {};
+
+	function getLog(key, value){ console.log(key+': '+JSON.stringify(value)); }
+	function buildResultsHtml( data ){
+		let productsList 			= data.products,
+			html 					= '',
+			outputAmountKey 		= 'amount_' + outputCurrency.toLowerCase();
+			//getLog("outputAmountKey", outputAmountKey);
+		for (i = 0; i < productsList.length; i++ ){
+			let dataItem 					= productsList[i],
+				productTitle 				= dataItem.data.title,
+				productSkuId 				= dataItem.sku_id,
+				productImg 					= dataItem.data.img,
+				productDataOrigin 			= dataItem.data_origin,
+				productDataLastUpdate 		= dataItem.last_update_readable,
+				// productGenbaHref 		= 'https://etailer.genbadigital.io/2/repository/wim/portal.ashx?list=52&product=' + productSkuId,
+				productPrices 			= dataItem.data.currencies;
+			html +='<li class="results-product-item">';
+				html +='<div class="page-table">';
+					html +='<div class="flex page-table-row flex page-table-head">';
+						html +='<div class="page-table-col">';
+							html +='<div class="page-table-col-inner">';
+								html +='<div class="flex">';
+									if ( productImg ){
+									html +='<figure>';
+										html +='<img src="' + productImg + '" alt="' + productTitle + ' product image">';
+									html +='</figure>';
+									}
+									html +='<figcaption>';
+										html +='<h3><strong>' + productTitle + '</strong></h3>';
+										html +='<h4>' + productSkuId + '</h4>';
+										html +='<h5>From <span>' + productDataOrigin + '</span></h5>';
+										html +='<h6>Last update on <span>' + productDataLastUpdate + '</span></h6>';
+									html +='</figcaption>';
+								html +='</div>';
+							html +='</div>';
+						html +='</div>';
+					html +='</div>';
+					html += '<div class="results-product-item-prices">';
+						html += '<div class="flex page-table-row flex page-table-legend">';
+							html += '<div class="page-table-col">';
+								html += '<div class="page-table-col-inner text-align-center">Country code</div>';
+							html += '</div>';
+							html += '<div class="page-table-col results-product-item-currency">';
+								html += '<div class="page-table-col-inner text-align-center">Currency</div>';
+							html += '</div>';
+							html += '<div class="page-table-col results-product-item-currency-amount">';
+								html += '<div class="page-table-col-inner">Price in currency</div>';
+							html += '</div>';
+							html += '<div class="page-table-col results-product-item-currency-quote">';
+								html += '<div class="page-table-col-inner">USD to currency</div>';
+							html += '</div>';
+							html += '<div class="page-table-col results-product-item-output-amount">';
+								html += '<div class="page-table-col-inner text-align-center">Price in ' + outputCurrency + '</div>';
+							html += '</div>';
+						html += '</div>';
+						for (j = 0; j < productPrices.length; j++ ){
+							let priceItem 			= productPrices[j],
+								outputAmount 		= priceItem[outputAmountKey];
+							let fmt = function( val ){
+								return ( typeof val === 'number' && !isNaN( val ) ) ? val.toFixed( 2 ) : '-';
+							};
+							let quoteVal = ( typeof priceItem.quote === 'number' && !isNaN( priceItem.quote ) ) ? priceItem.quote : '-';
+							let rowClass = priceItem.unsupported_currency ? ' results-product-item-unsupported' : '';
+							html += '<div class="flex page-table-row flex' + rowClass + '">';
+								html += '<div class="page-table-col results-product-item-country">';
+									html += '<div class="page-table-col-inner text-align-center">' + priceItem.country_code + '</div>';
+								html += '</div>';
+								html += '<div class="page-table-col results-product-item-currency">';
+									html += '<div class="page-table-col-inner text-align-center">' + priceItem.currency_code + '</div>';
+								html += '</div>';
+								html += '<div class="page-table-col results-product-item-currency-amount">';
+									html += '<div class="page-table-col-inner">' + fmt( priceItem.currency_amount ) + '</div>';
+								html += '</div>';
+								html += '<div class="page-table-col results-product-item-currency-quote">';
+									html += '<div class="page-table-col-inner">' + quoteVal + '</div>';
+								html += '</div>';
+								html += '<div class="page-table-col results-product-item-output-amount">';
+									html += '<div class="page-table-col-inner text-align-center">' + fmt( outputAmount ) + '</div>';
+								html += '</div>';
+							html += '</div>';
+						}
+					html += '</div>';
+				html +='</div>';
+			html +='</li>';
+		} 
+		return html
+	}
+	function ottieniDatiGenba(t, e){
+		e.preventDefault();
+		let $this 					= $( t ),
+			thisText 				= $this.text(),
+			$currentRow 			= $this.parent().parent().parent(),
+			$textarea 				= $('#input-sku-id'),
+			textareaVal 			= $textarea.val(),
+			$inputCurrency 			= $('#input-currency'),
+			inputCurrencyVal 		= $inputCurrency.val().toUpperCase(),
+			skuIdList 				= [];
+		if ( $this.hasClass( 'disabled' ) ){ return }
+		$this.addClass( 'disabled' );
+		if ( !textareaVal ){
+			errorPopup( 'Lista sku id vuota! Devi inserire almeno 1 sku id.' );
+			return
+		}
+		if ( textareaVal.includes( '\n' ) ){
+			let splittedString = textareaVal.split('\n');
+			for (i = 0; i < splittedString.length; i++){
+				let skuId = splittedString[i].trim();
+				skuIdList.push( skuId );
+			}
+		}else{
+			let skuId = textareaVal.trim();
+			skuIdList.push( skuId );
+		}
+		if ( !OUTPUT_CURRENCIES.includes( inputCurrencyVal ) ){
+			errorPopup( 'Valuta output non valida!<br>Valori validi: USD, EUR, GBP' );
+			return
+		}
+		$this.html( 'Cerco... (<span>0</span>)' );
+		const url = '/ajax/genba-data';
+		let dataToSend = {};
+		dataToSend.sku_id_list 		= skuIdList;
+		dataToSend.currency 		= inputCurrencyVal;
+		outputCurrency 		= dataToSend.currency;
+		let elapsedTime = 0;
+		if ( requestTimeInterval ){ clearInterval( requestTimeInterval ) }
+		requestTimeInterval = setInterval(() => {
+			let $counter 		= $('span', $this);
+			elapsedTime++;
+			$counter.text( elapsedTime );
+		}, 1000);
+		const request = fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-type':'application/json', 
+					'Accept':'application/json'
+				},
+				body: JSON.stringify( dataToSend ),
+			})
+			.then(response => {
+				// getLog("response", response);
+				if ( response.ok ){
+					getLog("response.ok", response.ok);
+					return response.json()
+				}else{
+					$this.text( thisText );
+					errorPopup( 'Richiesta fallita!<br>Status code: ' + response.status);
+				}
+			})
+			.then(responseData => {
+				if ( responseData ){
+					getLog("responseData", responseData);
+					responseObj = responseData;
+					$this.text( 'Dati ottenuti!' );
+					let $results 			= $( '.results-data' ),
+						$resultsTime 		= $('.results-data-title em span', $results),
+						$resultsCount 		= $('.results-data-title strong', $results),
+						$resultsCont 		= $('ul', $results),
+						$exportBtn 			= $('.results-data-export', $results),
+						resultsHtml 		= buildResultsHtml( responseData );
+					$resultsCount.text( responseData.products.length );
+					$resultsTime.text( elapsedTime );
+					$resultsCont.html( resultsHtml );
+					if ( responseData.products.length ){ $exportBtn.show() }
+					$results.slideDown( 500 );
+					setTimeout(() => {
+						$this.text( thisText );
+						// resetForm();
+					}, 2000);
+				}
+			}).catch(errorMsg => { 
+				getLog("errorMsg", errorMsg);
+				$this.text( thisText );
+				errorPopup( 'Errore nella richiesta!' );
+			})
+			.finally(() => {
+				1
+			});
+	}
+	function resetForm(){
+		let $textarea 		= $('#input-sku-id'),
+			$input 			= $('#input-currency'),
+			$submit 		= $('#submit-btn');
+		$textarea.val( '' );
+		$input.val( '' );
+		$submit.removeClass( 'disabled' );
+	}
+	function errorPopup( message ){
+		let $body = $( 'body' ),
+			html = '';
+		html += '<div class="fixed-popup display-none">';
+			html += '<div class="fixed-popup-padding">';
+				html += '<div class="fixed-popup-inner">';
+					html += '<h2>Message</h2>';
+					html += '<p>' + message + '</p>';
+					html += '<a href="#" onclick="closePopup(this, event)">OK</a>';
+				html += '</div>';
+			html += '</div>';
+		html += '</div>';
+		let $popup = $( html );
+		$body.prepend( $popup );
+		$popup.slideDown( 200 );
+	}
+	function closePopup(t, e){
+		e.preventDefault();
+		let $popup 			= $( '.fixed-popup' ),
+			$submit 		= $( '#submit-btn' );
+		$popup.slideUp( 200 , () => { 
+			$popup.remove();
+			$submit.removeClass( 'disabled' );
+		});
+	}
+	function exportResults(t, e){
+		e.preventDefault();
+		let $this 			= $( t ),
+			thisText 		= $this.text(),
+			url 			= '/ajax/export-xls',
+			dataToSend 		= responseObj;
+		$this.text( 'Sto esportando...' );
+		const request = fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-type':'application/json', 
+					'Accept':'application/json'
+				},
+				body: JSON.stringify( dataToSend ),
+			})
+			.then(response => {
+				// getLog("response", response);
+				// getLog("response.ok", response.ok);
+				if ( response.ok ){
+					return response.json()
+				}else{
+					errorPopup( 'Esportazione fallita!<br>Status code: ' + response.status);
+					return {}
+				}
+			})
+			.then(responseData => {
+				if ( responseData ){
+					// getLog("responseData", responseData);
+					if ( responseData.success ){
+						$this.text( 'Dati esportati!' );
+					}else{
+						errorPopup( 'Esportazione fallita!<br>Messaggio: ' + response.info);
+						$this.text( 'Errore!' );
+					}
+				}
+			}).catch(errorMsg => { 
+				getLog("errorMsg", errorMsg);
+				$this.text( thisText );
+				errorPopup( 'Esportazione fallita!<br>Messaggio: ' + errorMsg);
+			})
+			.finally(() => { 
+				setTimeout(() => {
+					$this.text( thisText )
+				}, 2000)
+			});
+	}
+</script>
+{% endblock %}
