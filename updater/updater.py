@@ -8,6 +8,7 @@ import json
 import os
 import shutil
 import socket
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -92,16 +93,55 @@ def app_is_running(port: int = APP_PORT) -> bool:
         return connection.connect_ex(("127.0.0.1", port)) == 0
 
 
+SYSTEM_CERTIFICATE_BUNDLES = ("/etc/ssl/cert.pem", "/etc/ssl/certs/ca-certificates.crt")
+
+
+def _certificate_bundle() -> str | None:
+    """Elenco di certificati affidabili da usare per le connessioni HTTPS.
+
+    L'eseguibile creato con PyInstaller porta con sé il proprio Python e non
+    vede i certificati installati nel sistema: su macOS questo faceva fallire
+    ogni richiesta con CERTIFICATE_VERIFY_FAILED. Usiamo quelli di certifi
+    inclusi nel pacchetto, con i certificati di sistema come ripiego.
+    """
+    override = os.environ.get("SSL_CERT_FILE")
+    if override and Path(override).is_file():
+        return override
+    try:
+        import certifi
+
+        bundle = certifi.where()
+        if Path(bundle).is_file():
+            return bundle
+    except Exception:
+        pass
+    return next((path for path in SYSTEM_CERTIFICATE_BUNDLES if Path(path).is_file()), None)
+
+
+def _ssl_context() -> ssl.SSLContext:
+    return ssl.create_default_context(cafile=_certificate_bundle())
+
+
+def _network_error(action: str, exc: Exception) -> UpdateError:
+    message = f"{action}: {exc}"
+    if "CERTIFICATE_VERIFY" in str(exc):
+        message += (
+            "\n\nI certificati HTTPS non sono verificabili. Se la rete usa un proxy "
+            "aziendale, esportarne il certificato nella variabile SSL_CERT_FILE."
+        )
+    return UpdateError(message)
+
+
 def _request_json(url: str) -> dict:
     request = urllib.request.Request(
         url,
         headers={"Accept": "application/vnd.github+json", "User-Agent": "GPS-Updater/1.0"},
     )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30, context=_ssl_context()) as response:
             return json.load(response)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-        raise UpdateError(f"Impossibile contattare GitHub: {exc}") from exc
+        raise _network_error("Impossibile contattare GitHub", exc) from exc
 
 
 def latest_commit_sha() -> str:
@@ -115,10 +155,12 @@ def latest_commit_sha() -> str:
 def download_archive(destination: Path) -> None:
     request = urllib.request.Request(ARCHIVE_URL, headers={"User-Agent": "GPS-Updater/1.0"})
     try:
-        with urllib.request.urlopen(request, timeout=120) as response, destination.open("wb") as output:
+        with urllib.request.urlopen(
+            request, timeout=120, context=_ssl_context()
+        ) as response, destination.open("wb") as output:
             shutil.copyfileobj(response, output)
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise UpdateError(f"Download dell'aggiornamento non riuscito: {exc}") from exc
+        raise _network_error("Download dell'aggiornamento non riuscito", exc) from exc
 
 
 def extract_archive(archive: Path, destination: Path) -> Path:
@@ -442,7 +484,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="store_true", help="Mostra la versione dell'updater")
     args = parser.parse_args(argv)
     if args.version:
-        print("GPS Updater 1.0")
+        print("GPS Updater 1.1")
         return 0
 
     try:

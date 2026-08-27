@@ -10,7 +10,10 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=["tkinter", "tkinter.messagebox", "tkinter.ttk"],
+    # certifi non e' importato al livello del modulo, ma serve incluso: porta
+    # l'elenco dei certificati HTTPS, che il Python del pacchetto non trova nel
+    # sistema (su macOS senza di esso ogni download falliva).
+    hiddenimports=["tkinter", "tkinter.messagebox", "tkinter.ttk", "certifi"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -44,7 +47,7 @@ if sys.platform == "darwin":
         name="Aggiorna GPS.app",
         icon=None,
         bundle_identifier="com.indiegala.gps.updater",
-        version="1.0.0",
+        version="1.1.0",
         info_plist={
             "CFBundleDisplayName": "Aggiorna GPS",
             "LSMinimumSystemVersion": "11.0",

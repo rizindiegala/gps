@@ -1,3 +1,4 @@
+import os
 import sys
 import tempfile
 import unittest
@@ -81,6 +82,25 @@ class UpdaterTests(unittest.TestCase):
             (self.app / "obsolete.py").read_text(encoding="utf-8"), "old obsolete"
         )
         self.assertFalse((self.app / "second.py").exists())
+
+    def test_ssl_context_has_trusted_certificates(self):
+        bundle = updater._certificate_bundle()
+        if bundle is not None:
+            self.assertTrue(Path(bundle).is_file())
+        self.assertTrue(updater._ssl_context().get_ca_certs())
+
+    def test_certificate_bundle_prefers_ssl_cert_file(self):
+        custom = Path(self.temporary.name) / "custom-ca.pem"
+        custom.write_text("", encoding="utf-8")
+        previous = os.environ.get("SSL_CERT_FILE")
+        os.environ["SSL_CERT_FILE"] = str(custom)
+        try:
+            self.assertEqual(updater._certificate_bundle(), str(custom))
+        finally:
+            if previous is None:
+                del os.environ["SSL_CERT_FILE"]
+            else:
+                os.environ["SSL_CERT_FILE"] = previous
 
     def test_state_round_trip(self):
         updater.save_state(self.app, "abcdef123", ["module.py", "app.py"])
