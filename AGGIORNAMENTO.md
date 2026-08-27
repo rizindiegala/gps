@@ -31,6 +31,8 @@ L'updater:
 - aggiorna le dipendenze dentro l'ambiente Python `env`;
 - scarica in anticipo il browser usato per le ricerche, così la prima ricerca
   non resta in attesa;
+- su Mac rimette il permesso di avvio su `app.command`, che si perde facilmente
+  quando la cartella viene copiata;
 - elimina solo i vecchi file che erano gestiti dall'updater;
 - ripristina i file precedenti se la copia del nuovo codice fallisce.
 

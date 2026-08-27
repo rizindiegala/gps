@@ -163,6 +163,38 @@ def download_archive(destination: Path) -> None:
         raise _network_error("Download dell'aggiornamento non riuscito", exc) from exc
 
 
+def _restore_executable_bits(bundle: zipfile.ZipFile, destination: Path) -> None:
+    """Riapplica i permessi di esecuzione registrati nell'archivio.
+
+    zipfile li scarta durante l'estrazione, quindi senza questo passaggio
+    'app.command' arriva non eseguibile e su macOS il doppio clic risponde
+    "you do not have appropriate access privileges".
+    """
+    if os.name == "nt":
+        return
+    for member in bundle.infolist():
+        if member.is_dir() or not (member.external_attr >> 16) & 0o111:
+            continue
+        extracted = destination / member.filename
+        if extracted.is_file():
+            extracted.chmod(extracted.stat().st_mode | 0o111)
+
+
+def ensure_launchers_executable(app_dir: Path, log: LogCallback) -> None:
+    """Rende avviabili gli script di lancio nella cartella dell'app.
+
+    Il bit di esecuzione si perde anche quando la cartella viene copiata con
+    strumenti che non lo conservano, come i servizi di cloud storage.
+    """
+    if os.name == "nt":
+        return
+    for launcher in sorted(app_dir.glob("*.command")) + sorted(app_dir.glob("*.sh")):
+        mode = launcher.stat().st_mode
+        if not mode & 0o111:
+            launcher.chmod(mode | 0o111)
+            log(f"Ho reso avviabile {launcher.name}.")
+
+
 def extract_archive(archive: Path, destination: Path) -> Path:
     try:
         with zipfile.ZipFile(archive) as bundle:
@@ -180,6 +212,7 @@ def extract_archive(archive: Path, destination: Path) -> Path:
                 if member_path.is_absolute() or ".." in member_path.parts:
                     raise UpdateError("Il pacchetto contiene un percorso non sicuro.")
             bundle.extractall(destination)
+            _restore_executable_bits(bundle, destination)
     except (zipfile.BadZipFile, OSError) as exc:
         raise UpdateError(f"Pacchetto di aggiornamento non valido: {exc}") from exc
 
@@ -433,6 +466,8 @@ def perform_update(app_dir: Path, log: LogCallback = print, force: bool = False)
     if app_is_running():
         raise UpdateError("GPS è aperto. Chiudilo, poi avvia nuovamente l'updater.")
 
+    ensure_launchers_executable(app_dir, log)
+
     log("Controllo l'ultima versione online...")
     sha = latest_commit_sha()
     state = load_state(app_dir)
@@ -460,6 +495,7 @@ def perform_update(app_dir: Path, log: LogCallback = print, force: bool = False)
         except (OSError, shutil.Error) as exc:
             raise UpdateError(f"Aggiornamento annullato; i file precedenti sono stati ripristinati: {exc}") from exc
 
+        ensure_launchers_executable(app_dir, log)
         prepare_browser(python, log)
 
     log(f"Aggiornamento completato ({sha[:7]}).")
@@ -521,7 +557,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="store_true", help="Mostra la versione dell'updater")
     args = parser.parse_args(argv)
     if args.version:
-        print("GPS Updater 1.2")
+        print("GPS Updater 1.3")
         return 0
 
     try:

@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "updater"))
@@ -101,6 +102,35 @@ class UpdaterTests(unittest.TestCase):
                 del os.environ["SSL_CERT_FILE"]
             else:
                 os.environ["SSL_CERT_FILE"] = previous
+
+    @unittest.skipIf(os.name == "nt", "i permessi Unix non esistono su Windows")
+    def test_extract_archive_keeps_the_launcher_executable(self):
+        archive = Path(self.temporary.name) / "package.zip"
+        with zipfile.ZipFile(archive, "w") as bundle:
+            for name in updater.REQUIRED_FILES:
+                bundle.writestr(f"gps-main/{name}", "contenuto")
+            launcher = zipfile.ZipInfo("gps-main/app.command")
+            launcher.external_attr = 0o755 << 16
+            bundle.writestr(launcher, "#!/bin/sh\n")
+
+        source = updater.extract_archive(archive, Path(self.temporary.name) / "extracted")
+
+        self.assertTrue(os.access(source / "app.command", os.X_OK))
+        self.assertFalse(os.access(source / "app.py", os.X_OK))
+
+    @unittest.skipIf(os.name == "nt", "i permessi Unix non esistono su Windows")
+    def test_ensure_launchers_executable_repairs_lost_permissions(self):
+        self.write(self.app, "app.command", "#!/bin/sh\n")
+        (self.app / "app.command").chmod(0o644)
+        self.write(self.app, "app.py", "print('x')")
+        (self.app / "app.py").chmod(0o644)
+        messages: list[str] = []
+
+        updater.ensure_launchers_executable(self.app, messages.append)
+
+        self.assertTrue(os.access(self.app / "app.command", os.X_OK))
+        self.assertFalse(os.access(self.app / "app.py", os.X_OK))
+        self.assertEqual(len(messages), 1)
 
     def test_env_file_with_credentials_is_renamed(self):
         self.write(self.app, "env", "GENBA_USERNAME=tizio\nGENBA_PASSWORD=segreto\n")
