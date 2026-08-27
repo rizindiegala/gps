@@ -18,8 +18,10 @@ per le ricerche viene scaricato automaticamente da Selenium. Non serve
 installare Google Chrome: se non c'è, viene usata una copia di Chrome for
 Testing riservata all'app.
 
-Serve inoltre il file **`.env`** con le credenziali, che non è incluso qui e
-viene fornito separatamente. Vedere la sezione [Il file .env](#il-file-env).
+Serve inoltre il file con le credenziali, che non è incluso qui e viene fornito
+separatamente: si chiama **`.env`** su Windows e **`env.txt`** su Mac, dove il
+Finder non accetta i nomi che iniziano con il punto. Vedere la sezione
+[Il file .env](#il-file-env).
 
 ## Installazione su Windows
 
@@ -51,7 +53,12 @@ L'updater è compilato per **Mac Apple Silicon** (M1 o successivi).
    **Apri** una seconda volta: l'app non è firmata, quindi il doppio clic
    diretto viene bloccato al primo avvio. Attendere il messaggio
    **Aggiornamento completato**.
-4. Copiare il file `.env` nella stessa cartella.
+4. Copiare il file delle credenziali nella stessa cartella, **rinominandolo in
+   `env.txt`**. Su Mac il nome `.env` non è utilizzabile: il Finder rifiuta i
+   nomi che iniziano con il punto ("You can't use a name that begins with a
+   dot") e il nome `env`, senza estensione, è già occupato dall'ambiente Python
+   creato al passo 3. L'app legge `env.txt` esattamente come `.env`. Se compare
+   l'avviso sull'estensione, confermare **Usa .txt**.
 5. Avviare l'app con **`app.command`**. Se il doppio clic non funziona, aprire
    il Terminale nella cartella ed eseguire una volta `chmod +x app.command`.
 
@@ -107,14 +114,15 @@ Per chiudere l'app: chiudere la finestra del terminale.
 ## Aggiornamenti
 
 Chiudere GPS e fare doppio clic sull'updater. Scarica sempre l'ultima versione e
-non tocca il file `.env`, la cache dei prezzi né i file già esportati.
+non tocca il file delle credenziali, la cache dei prezzi né i file già esportati.
 Istruzioni complete e casi particolari in [AGGIORNAMENTO.md](AGGIORNAMENTO.md).
 
 ## Problemi comuni
 
 - **Si apre e si chiude subito**: manca l'ambiente Python. Eseguire l'updater
   nella cartella dell'app.
-- **Errore sulle credenziali**: manca il file `.env` oppure è incompleto.
+- **Errore sulle credenziali**: manca il file `.env` (su Mac `env.txt`) oppure è
+  incompleto.
 - **La ricerca non trova il prodotto**: il portale Genba può aver cambiato
   pagina, oppure lo sku id non esiste nel catalogo.
 - **GPS è aperto** durante l'aggiornamento: chiudere la finestra del terminale

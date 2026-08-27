@@ -38,7 +38,7 @@ L'updater:
 
 Non modifica mai:
 
-- `.env` e le credenziali Genba;
+- il file delle credenziali Genba, sia `.env` sia `env.txt`;
 - `data_file/data.json`;
 - i file dentro `exports/`;
 - i chromedriver eventualmente messi a mano nel progetto;
