@@ -9,12 +9,17 @@ Gira sul computer di chi la usa: si apre nel browser all'indirizzo
 
 ## Prerequisiti
 
-- **Python 3** installato ([python.org/downloads](https://www.python.org/downloads/)).
-  Su Windows, durante l'installazione, spuntare **Add Python to PATH**.
-- **Google Chrome** installato. Durante la ricerca l'app apre una finestra di
-  Chrome e la pilota da sola: va lasciata lavorare senza chiuderla.
-- Il file **`.env`** con le credenziali, che non è incluso qui e viene fornito
-  separatamente. Vedere la sezione [Il file .env](#il-file-env).
+Serve **solo Python 3** ([python.org/downloads](https://www.python.org/downloads/)).
+Su Windows, durante l'installazione, spuntare **Add Python to PATH**.
+
+Tutto il resto lo installa l'updater dentro la cartella dell'app, senza toccare
+il sistema: le librerie Python finiscono nell'ambiente `env` e il browser usato
+per le ricerche viene scaricato automaticamente da Selenium. Non serve
+installare Google Chrome: se non c'è, viene usata una copia di Chrome for
+Testing riservata all'app.
+
+Serve inoltre il file **`.env`** con le credenziali, che non è incluso qui e
+viene fornito separatamente. Vedere la sezione [Il file .env](#il-file-env).
 
 ## Installazione su Windows
 
@@ -72,7 +77,9 @@ convertire i prezzi in valuta.
 2. Incollare gli sku id nel campo di sinistra, **uno per riga**.
 3. Indicare la valuta di output: `usd`, `eur` oppure `gbp`.
 4. Premere **Cerca** e attendere. Si apre una finestra di Chrome che naviga da
-   sola sul portale Genba: non chiuderla e non usarla.
+   sola sul portale Genba: non chiuderla e non usarla. Alla primissima ricerca,
+   se il browser non era ancora stato scaricato, l'attesa può arrivare a qualche
+   minuto; dalla seconda in poi è immediata.
 5. A ricerca conclusa, **Esporta tutto** genera un file `.xlsx` dentro la
    sottocartella `exports`.
 

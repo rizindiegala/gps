@@ -115,17 +115,17 @@ def selenium_make_executable( driver_path ):
     return driver_path
 
 def selenium_get_chrome_driver_path():
+    # Restituiamo un driver solo se e' indicato esplicitamente in CHROMEDRIVER_PATH:
+    # passare un executable_path a Selenium disattiva il Selenium Manager, che
+    # altrimenti procura da solo sia il chromedriver sia Chrome quando mancano.
     custom_path = os.environ.get('CHROMEDRIVER_PATH')
-    if custom_path:
-        custom_path = Path( custom_path )
-        if custom_path.is_file():
-            return selenium_make_executable( custom_path )
-        log(custom_path, 'CHROMEDRIVER_PATH e\' impostato ma il file non esiste, lo ignoro', context="selenium_init")
-    driver_dir = Path( '{}/endpoints/chrome_driver'.format( get_root_path() ) )
-    driver_path = driver_dir / selenium_get_chrome_driver_filename()
-    if not driver_path.is_file():
+    if not custom_path:
         return None
-    return selenium_make_executable( driver_path )
+    custom_path = Path( custom_path )
+    if custom_path.is_file():
+        return selenium_make_executable( custom_path )
+    log(custom_path, 'CHROMEDRIVER_PATH e\' impostato ma il file non esiste, lo ignoro', context="selenium_init")
+    return None
 
 def selenium_get_chrome_options():
     options = webdriver.ChromeOptions()
@@ -144,10 +144,10 @@ def selenium_init():
     log(f'{platform.system()} {platform.machine()}', 'Piattaforma', context="selenium_init")
     chrome_driver_path = selenium_get_chrome_driver_path()
     if chrome_driver_path:
-        log(chrome_driver_path, 'Uso il chromedriver incluso nel progetto', context="selenium_init")
+        log(chrome_driver_path, 'Uso il chromedriver indicato in CHROMEDRIVER_PATH', context="selenium_init")
         service = Service(executable_path=str( chrome_driver_path ))
     else:
-        log('Nessun chromedriver incluso per questa piattaforma, lo cerco in automatico.', context="selenium_init")
+        log('Driver e browser li procura Selenium: se non sono presenti li scarica (la prima volta puo\' richiedere qualche minuto).', context="selenium_init")
         service = Service()
     try:
         driver = webdriver.Chrome(service=service, options=selenium_get_chrome_options())

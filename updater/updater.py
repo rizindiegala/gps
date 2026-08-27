@@ -281,6 +281,17 @@ def ensure_python_environment(app_dir: Path, log: LogCallback) -> Path:
 
 def install_dependencies(python: Path, requirements: Path, log: LogCallback) -> None:
     log("Aggiorno le dipendenze Python...")
+    # Un pip vecchio non sa installare i pacchetti pubblicati solo come wheel
+    # recenti: se l'aggiornamento non riesce si prosegue comunque.
+    try:
+        subprocess.run(
+            [str(python), "-m", "pip", "install", "--upgrade", "pip"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        pass
     try:
         result = subprocess.run(
             [str(python), "-m", "pip", "install", "-r", str(requirements)],
@@ -293,6 +304,39 @@ def install_dependencies(python: Path, requirements: Path, log: LogCallback) -> 
     if result.returncode:
         details = (result.stderr or result.stdout).strip()
         raise UpdateError("Installazione dipendenze fallita:\n" + details[-3000:])
+
+
+BROWSER_WARMUP = (
+    "from selenium import webdriver\n"
+    "options = webdriver.ChromeOptions()\n"
+    "options.add_argument('--headless=new')\n"
+    "driver = webdriver.Chrome(options=options)\n"
+    "driver.quit()\n"
+)
+
+
+def prepare_browser(python: Path, log: LogCallback) -> None:
+    """Procura in anticipo driver e browser, così la prima ricerca non attende.
+
+    Selenium scarica da sé chromedriver e Chrome for Testing quando non sono
+    installati: farlo ora evita che l'utente aspetti senza spiegazioni al primo
+    utilizzo. Se non riesce non è un errore: verrà ritentato alla prima ricerca.
+    """
+    log("Preparo il browser per le ricerche...")
+    try:
+        result = subprocess.run(
+            [str(python), "-c", BROWSER_WARMUP],
+            capture_output=True,
+            text=True,
+            timeout=900,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        log(f"Browser non preparato ({exc}). Verrà scaricato alla prima ricerca.")
+        return
+    if result.returncode:
+        log("Browser non preparato. Verrà scaricato alla prima ricerca.")
+        return
+    log("Browser pronto.")
 
 
 def validate_python_sources(python: Path, source: Path) -> None:
@@ -336,6 +380,8 @@ def perform_update(app_dir: Path, log: LogCallback = print, force: bool = False)
             save_state(app_dir, sha, new_files)
         except (OSError, shutil.Error) as exc:
             raise UpdateError(f"Aggiornamento annullato; i file precedenti sono stati ripristinati: {exc}") from exc
+
+        prepare_browser(python, log)
 
     log(f"Aggiornamento completato ({sha[:7]}).")
     return "updated"
