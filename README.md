@@ -70,12 +70,21 @@ CURRENCYLAYER_API_KEY=
 Senza questo file l'app si avvia ma non riesce a fare login su Genba né a
 convertire i prezzi in valuta.
 
-**Il nome deve iniziare con il punto**: `.env`, non `env`. I sistemi nascondono
-i file che iniziano con il punto e alcuni programmi di posta lo rimuovono in
-fase di salvataggio, quindi vale la pena controllare. Su macOS si mostrano i
-file nascosti nel Finder con **Cmd + Shift + punto**, su Windows dal menu
-**Visualizza > Elementi nascosti**. Un file chiamato `env` senza il punto, oltre
-a non essere letto dall'app, impedisce di creare l'ambiente Python.
+### Se il nome `.env` non è accettato
+
+Il punto iniziale crea più di un problema: i file che iniziano con il punto sono
+nascosti, la posta elettronica e i servizi cloud a volte lo rimuovono durante il
+trasferimento, e né il Finder di macOS né Esplora file permettono di rinominare
+un file dandogli un nome che inizia col punto.
+
+Per questo l'app accetta anche due nomi normali, **`env.txt`** e
+**`credenziali.txt`**, con lo stesso contenuto. Se il file ricevuto si chiama
+`env`, basta rinominarlo in `env.txt` e spostarlo nella cartella dell'app: si fa
+interamente dal Finder, senza terminale. È l'unico modo se nella cartella
+esiste già l'ambiente Python, che si chiama `env` e occuperebbe lo stesso nome.
+
+Per vedere i file nascosti, su macOS si usa **Cmd + Shift + punto**, su Windows
+il menu **Visualizza > Elementi nascosti**.
 
 ## Uso
 

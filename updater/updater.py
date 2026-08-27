@@ -28,6 +28,8 @@ APP_PORT = 2000
 REQUIRED_FILES = {"app.py", "requirements.txt", ".env.example"}
 PROTECTED_PREFIXES = (
     ".env",
+    "env.txt",
+    "credenziali.txt",
     ".git",
     ".svn",
     STATE_FILENAME,
@@ -356,8 +358,8 @@ def resolve_env_name_conflict(app_dir: Path, log: LogCallback) -> None:
     raise UpdateError(
         f"Nella cartella dell'app c'è un file chiamato 'env' e l'ambiente Python "
         f"non può essere creato al suo posto:\n{candidate}\n\n"
-        "Se contiene le credenziali, rinominalo in '.env' con il punto iniziale. "
-        "Altrimenti spostalo o eliminalo, poi riavvia l'updater."
+        "Se contiene le credenziali, rinominalo in 'env.txt', che l'app legge "
+        "allo stesso modo. Altrimenti spostalo o eliminalo, poi riavvia l'updater."
     )
 
 
@@ -557,7 +559,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="store_true", help="Mostra la versione dell'updater")
     args = parser.parse_args(argv)
     if args.version:
-        print("GPS Updater 1.3")
+        print("GPS Updater 1.4")
         return 0
 
     try:

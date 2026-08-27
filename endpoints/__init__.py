@@ -27,7 +27,7 @@ def get_genba_credentials():
     password = os.environ.get('GENBA_PASSWORD', '').strip()
     if not username or not password:
         log_error(
-            'Mancano GENBA_USERNAME e/o GENBA_PASSWORD. Copia .env.example in .env e inserisci le credenziali.',
+            'Mancano GENBA_USERNAME e/o GENBA_PASSWORD. Copia .env.example in .env, oppure in env.txt se il sistema non accetta il punto iniziale, e inserisci le credenziali.',
             context="genba_credentials",
         )
         return None
@@ -421,7 +421,7 @@ def get_currency_quotes_api_key():
     api_key = os.environ.get('CURRENCYLAYER_API_KEY', '').strip()
     if not api_key:
         log_error(
-            'Manca CURRENCYLAYER_API_KEY. Copia .env.example in .env e inserisci la chiave.',
+            'Manca CURRENCYLAYER_API_KEY. Copia .env.example in .env, oppure in env.txt se il sistema non accetta il punto iniziale, e inserisci la chiave.',
             context="currency_quotes_api_key",
         )
         return None

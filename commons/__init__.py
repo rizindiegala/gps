@@ -29,7 +29,24 @@ def get_root_path():
     # da come e' stata rinominata la cartella del progetto.
     return Path( __file__ ).resolve().parent.parent
 
-load_dotenv( get_root_path() / '.env' )
+CREDENTIALS_FILENAMES = ( '.env', '.env.txt', 'env.txt', 'credenziali.txt' )
+
+def get_credentials_file( root=None ):
+    # Il nome standard '.env' non e' sempre riproducibile: i gestori di file di
+    # macOS e Windows rifiutano i nomi che iniziano con il punto, e i servizi di
+    # posta e cloud spesso lo togliono o aggiungono '.txt' durante il
+    # trasferimento. Accettiamo quindi anche le varianti senza punto, cosi' le
+    # credenziali si possono sistemare senza usare il terminale.
+    root = Path( root ) if root else get_root_path()
+    for name in CREDENTIALS_FILENAMES:
+        candidate = root / name
+        if candidate.is_file():
+            return candidate
+    return None
+
+_credentials_file = get_credentials_file()
+if _credentials_file:
+    load_dotenv( _credentials_file )
 
 def get_country_code_by_currency( currency ):
     currency_to_country = {"BDT": ["BD"], "EUR": ["BE", "BL", "RE", "GR", "GP", "GF", "PT", "PM", "EE", "IT", "ES", "ME", "MF", "MC", "MT", "MQ", "FR", "FI", "NL", "XK", "CY", "SK", "SI", "SM", "DE", "YT", "LV", "LU", "TF", "VA", "AD", "AT", "AX", "IE"], "XOF": ["BF", "BJ", "GW", "ML", "NE", "CI", "SN", "TG"], "BGN": ["BG"], "BAM": ["BA"], "BBD": ["BB"], "XPF": ["WF", "PF", "NC"], "BMD": ["BM"], "BND": ["BN"], "BOB": ["BO"], "BHD": ["BH"], "BIF": ["BI"], "BTN": ["BT"], "JMD": ["JM"], "NOK": ["BV", "SJ", "NO"], "BWP": ["BW"], "WST": ["WS"], "USD": ["BQ", "TL", "GU", "SV", "PR", "PW", "EC", "MH", "MP", "IO", "FM", "VG", "US", "UM", "TC", "VI", "AS"], "BRL": ["BR"], "BSD": ["BS"], "GBP": ["JE", "GS", "GG", "GB", "IM"], "BYR": ["BY"], "BZD": ["BZ"], "RUB": ["RU"], "RWF": ["RW"], "RSD": ["RS"], "TMT": ["TM"], "TJS": ["TJ"], "RON": ["RO"], "NZD": ["TK", "PN", "NZ", "NU", "CK"], "GTQ": ["GT"], "XAF": ["GQ", "GA", "CM", "CG", "CF", "TD"], "JPY": ["JP"], "GYD": ["GY"], "GEL": ["GE"], "XCD": ["GD", "MS", "KN", "DM", "LC", "VC", "AG", "AI"], "GNF": ["GN"], "GMD": ["GM"], "DKK": ["GL", "FO", "DK"], "GIP": ["GI"], "GHS": ["GH"], "OMR": ["OM"], "TND": ["TN"], "JOD": ["JO"], "HRK": ["HR"], "HTG": ["HT"], "HUF": ["HU"], "HKD": ["HK"], "HNL": ["HN"], "AUD": ["HM", "NF", "NR", "CC", "CX", "KI", "TV", "AU"], "VEF": ["VE"], "ILS": ["PS", "IL"], "PYG": ["PY"], "IQD": ["IQ"], "PAB": ["PA"], "PGK": ["PG"], "PEN": ["PE"], "PKR": ["PK"], "PHP": ["PH"], "PLN": ["PL"], "ZMK": ["ZM"], "MAD": ["EH", "MA"], "EGP": ["EG"], "ZAR": ["ZA"], "VND": ["VN"], "SBD": ["SB"], "ETB": ["ET"], "SOS": ["SO"], "ZWL": ["ZW"], "SAR": ["SA"], "ERN": ["ER"], "MDL": ["MD"], "MGA": ["MG"], "UZS": ["UZ"], "MMK": ["MM"], "MOP": ["MO"], "MNT": ["MN"], "MKD": ["MK"], "MUR": ["MU"], "MWK": ["MW"], "MVR": ["MV"], "MRO": ["MR"], "UGX": ["UG"], "TZS": ["TZ"], "MYR": ["MY"], "MXN": ["MX"], "SHP": ["SH"], "FJD": ["FJ"], "FKP": ["FK"], "NIO": ["NI"], "NAD": ["NA"], "VUV": ["VU"], "NGN": ["NG"], "NPR": ["NP"], "CHF": ["CH", "LI"], "COP": ["CO"], "CNY": ["CN"], "CLP": ["CL"], "CAD": ["CA"], "CDF": ["CD"], "CZK": ["CZ"], "CRC": ["CR"], "ANG": ["CW", "SX"], "CVE": ["CV"], "CUP": ["CU"], "SZL": ["SZ"], "SYP": ["SY"], "KGS": ["KG"], "KES": ["KE"], "SSP": ["SS"], "SRD": ["SR"], "KHR": ["KH"], "KMF": ["KM"], "STD": ["ST"], "KRW": ["KR"], "KPW": ["KP"], "KWD": ["KW"], "SLL": ["SL"], "SCR": ["SC"], "KZT": ["KZ"], "KYD": ["KY"], "SGD": ["SG"], "SEK": ["SE"], "SDG": ["SD"], "DOP": ["DO"], "DJF": ["DJ"], "YER": ["YE"], "DZD": ["DZ"], "UYU": ["UY"], "LBP": ["LB"], "LAK": ["LA"], "TWD": ["TW"], "TTD": ["TT"], "TRY": ["TR"], "LKR": ["LK"], "TOP": ["TO"], "LTL": ["LT"], "LRD": ["LR"], "LSL": ["LS"], "THB": ["TH"], "LYD": ["LY"], "AED": ["AE"], "AFN": ["AF"], "ISK": ["IS"], "IRR": ["IR"], "AMD": ["AM"], "ALL": ["AL"], "AOA": ["AO"], "ARS": ["AR"], "AWG": ["AW"], "INR": ["IN"], "AZN": ["AZ"], "IDR": ["ID"], "UAH": ["UA"], "QAR": ["QA"], "MZN": ["MZ"]}
