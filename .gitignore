@@ -15,16 +15,9 @@ updater/build/
 updater/dist/
 updater/*.spec.bak
 
-# ChromeDriver (binari, zip, cartelle estratte; si aggiornano da soli)
-endpoints/chrome_driver/*
-!endpoints/chrome_driver/.gitkeep
-!endpoints/chrome_driver/chrome_driver_downloads.txt
-**/chromedriver.exe
-**/_chromedriver.exe
-**/*chromedriver*.exe
-**/*chromedriver*.zip
-**/*chromedriver*.bak
-**/chromedriver-win64/
+# ChromeDriver: non serve piu' nel progetto, se ne occupa Selenium nella propria
+# cache. Se ne viene messo uno a mano per CHROMEDRIVER_PATH, resta fuori dal repo.
+**/*chromedriver*
 **/LICENSE.chromedriver
 
 # Python

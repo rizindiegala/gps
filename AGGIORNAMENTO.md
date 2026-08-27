@@ -29,6 +29,8 @@ L'updater:
 
 - scarica il codice più recente;
 - aggiorna le dipendenze dentro l'ambiente Python `env`;
+- scarica in anticipo il browser usato per le ricerche, così la prima ricerca
+  non resta in attesa;
 - elimina solo i vecchi file che erano gestiti dall'updater;
 - ripristina i file precedenti se la copia del nuovo codice fallisce.
 
@@ -37,7 +39,7 @@ Non modifica mai:
 - `.env` e le credenziali Genba;
 - `data_file/data.json`;
 - i file dentro `exports/`;
-- i chromedriver dentro `endpoints/chrome_driver/`;
+- i chromedriver eventualmente messi a mano nel progetto;
 - log, cookie, ambiente Python e repository Git locale.
 
 ## Primo avvio su Windows
