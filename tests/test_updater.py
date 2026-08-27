@@ -102,6 +102,38 @@ class UpdaterTests(unittest.TestCase):
             else:
                 os.environ["SSL_CERT_FILE"] = previous
 
+    def test_env_file_with_credentials_is_renamed(self):
+        self.write(self.app, "env", "GENBA_USERNAME=tizio\nGENBA_PASSWORD=segreto\n")
+
+        updater.resolve_env_name_conflict(self.app, lambda message: None)
+
+        self.assertFalse((self.app / "env").exists())
+        self.assertIn("GENBA_USERNAME", (self.app / ".env").read_text(encoding="utf-8"))
+
+    def test_unrelated_env_file_stops_the_update(self):
+        self.write(self.app, "env", "contenuto qualunque")
+
+        with self.assertRaises(updater.UpdateError):
+            updater.resolve_env_name_conflict(self.app, lambda message: None)
+
+        self.assertTrue((self.app / "env").is_file())
+
+    def test_env_file_is_kept_when_credentials_already_exist(self):
+        self.write(self.app, "env", "GENBA_USERNAME=tizio")
+        self.write(self.app, ".env", "GENBA_USERNAME=caio")
+
+        with self.assertRaises(updater.UpdateError):
+            updater.resolve_env_name_conflict(self.app, lambda message: None)
+
+        self.assertEqual((self.app / ".env").read_text(encoding="utf-8"), "GENBA_USERNAME=caio")
+
+    def test_existing_env_directory_is_left_alone(self):
+        (self.app / "env").mkdir()
+
+        updater.resolve_env_name_conflict(self.app, lambda message: None)
+
+        self.assertTrue((self.app / "env").is_dir())
+
     def test_state_round_trip(self):
         updater.save_state(self.app, "abcdef123", ["module.py", "app.py"])
         self.assertEqual(

@@ -293,10 +293,47 @@ def _venv_python(app_dir: Path) -> Path | None:
     return next((candidate for candidate in candidates if candidate.is_file()), None)
 
 
+def _looks_like_credentials(path: Path) -> bool:
+    try:
+        content = path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return False
+    return "GENBA_USERNAME" in content or "GENBA_PASSWORD" in content
+
+
+def resolve_env_name_conflict(app_dir: Path, log: LogCallback) -> None:
+    """Libera il nome 'env', dove deve nascere l'ambiente Python.
+
+    Se al suo posto c'è un file, venv si rifiuta di procedere. Succede quando il
+    file delle credenziali '.env' viene salvato senza il punto iniziale, che
+    macOS nasconde e diversi client di posta rimuovono: in quel caso lo
+    rinominiamo, perché altrimenti anche l'app non lo troverebbe.
+    """
+    candidate = app_dir / "env"
+    is_symlink = candidate.is_symlink()
+    if not is_symlink and (candidate.is_dir() or not candidate.exists()):
+        return
+
+    credentials = app_dir / ".env"
+    if not is_symlink and not credentials.exists() and _looks_like_credentials(candidate):
+        candidate.rename(credentials)
+        log("Trovato un file 'env' con le credenziali: l'ho rinominato in '.env'.")
+        return
+
+    raise UpdateError(
+        f"Nella cartella dell'app c'è un file chiamato 'env' e l'ambiente Python "
+        f"non può essere creato al suo posto:\n{candidate}\n\n"
+        "Se contiene le credenziali, rinominalo in '.env' con il punto iniziale. "
+        "Altrimenti spostalo o eliminalo, poi riavvia l'updater."
+    )
+
+
 def ensure_python_environment(app_dir: Path, log: LogCallback) -> Path:
     existing = _venv_python(app_dir)
     if existing:
         return existing
+
+    resolve_env_name_conflict(app_dir, log)
 
     bootstrap = next(
         (path for command in ("python3", "python", "py") if (path := shutil.which(command))),
@@ -484,7 +521,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="store_true", help="Mostra la versione dell'updater")
     args = parser.parse_args(argv)
     if args.version:
-        print("GPS Updater 1.1")
+        print("GPS Updater 1.2")
         return 0
 
     try:

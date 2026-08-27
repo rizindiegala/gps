@@ -47,7 +47,7 @@ if sys.platform == "darwin":
         name="Aggiorna GPS.app",
         icon=None,
         bundle_identifier="com.indiegala.gps.updater",
-        version="1.1.0",
+        version="1.2.0",
         info_plist={
             "CFBundleDisplayName": "Aggiorna GPS",
             "LSMinimumSystemVersion": "11.0",
