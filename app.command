@@ -1,13 +1,22 @@
-#!/usr/bin/env python3
+#!/bin/bash
+cd "$(dirname "$0")" || exit 1
 
-import webbrowser
-from threading import Timer
-from flask import Flask
-from flask_app import *
+PYTHON=""
+for candidate in "env/bin/python3" "env/bin/python"; do
+    if [ -x "$candidate" ]; then
+        PYTHON="$candidate"
+        break
+    fi
+done
 
-def open_browser():
-    webbrowser.open_new("http://127.0.0.1:2000")
+if [ -z "$PYTHON" ]; then
+    echo "Ambiente Python non trovato."
+    echo
+    echo "Esegui prima l'updater 'Aggiorna GPS' in questa cartella,"
+    echo "poi riprova ad avviare GPS."
+    echo
+    read -n 1 -s -r -p "Premi un tasto per chiudere."
+    exit 1
+fi
 
-if __name__ == "__main__":
-    Timer(1, open_browser).start()
-    app.run(port=2000)
+exec "$PYTHON" app.py
