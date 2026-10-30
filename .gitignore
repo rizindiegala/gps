@@ -1,5 +1,8 @@
-# Credenziali locali
+# Credenziali locali, in tutti i nomi che l'app accetta
 .env
+.env.txt
+env.txt
+credenziali.txt
 
 # File generati dall'app
 exports/*.xlsx
